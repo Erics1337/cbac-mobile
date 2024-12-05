@@ -2,8 +2,8 @@ import type { ConfigContext, ExpoConfig } from "@expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "Expo Starter",
-  slug: "expostarter",
+  name: "CBAC Mobile App",
+  slug: "cbac-mobile",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
@@ -41,8 +41,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     eas: {
-      projectId: "",
+      projectId: "f61c606c-151d-4dcb-8b26-d3681513cb61",
     },
   },
-  owner: "*",
+  owner: "erics1337",
 });
