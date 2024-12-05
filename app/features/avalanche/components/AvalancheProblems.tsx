@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { AvalancheProblem } from '../types';
 
 interface AvalancheProblemsProps {
@@ -24,38 +24,37 @@ function ProblemCard({ problem }: { problem: AvalancheProblem }) {
   const likelihoodIndex = likelihoodScale.indexOf(problem.likelihood as typeof likelihoodScale[number]);
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
+    <View className="bg-card rounded-xl p-4 space-y-4 shadow-sm">
+      <View className="flex-row items-center space-x-3">
         <Image
           source={problemImages[problem.name as keyof typeof problemImages]}
-          style={styles.icon}
+          className="w-10 h-10"
           resizeMode="contain"
         />
-        <Text style={styles.problemName}>{problem.name}</Text>
+        <Text className="text-lg font-medium text-card-foreground">{problem.name}</Text>
       </View>
 
-      <View style={styles.details}>
-        <View style={styles.likelihoodContainer}>
-          <Text style={styles.label}>Likelihood</Text>
-          <View style={styles.likelihoodBar}>
+      <View className="space-y-3">
+        <View className="space-y-1">
+          <Text className="text-sm font-medium text-muted-foreground mb-1">Likelihood</Text>
+          <View className="flex-row space-x-1 h-2">
             {likelihoodScale.map((_, index) => (
               <View
                 key={index}
-                style={[
-                  styles.likelihoodSegment,
-                  {
-                    backgroundColor: index <= likelihoodIndex ? '#DC2626' : '#E5E7EB',
-                  },
-                ]}
+                className={`flex-1 rounded ${
+                  index <= likelihoodIndex ? "bg-destructive" : "bg-muted"
+                }`}
               />
             ))}
           </View>
-          <Text style={styles.likelihoodText}>{problem.likelihood}</Text>
+          <Text className="text-sm text-foreground mt-1">{problem.likelihood}</Text>
         </View>
 
-        <View style={styles.sizeContainer}>
-          <Text style={styles.label}>Size Range</Text>
-          <Text style={styles.sizeText}>D{problem.size[0]} - D{problem.size[1]}</Text>
+        <View className="space-y-1">
+          <Text className="text-sm font-medium text-muted-foreground">Size Range</Text>
+          <Text className="text-base font-medium text-foreground">
+            D{problem.size[0]} - D{problem.size[1]}
+          </Text>
         </View>
       </View>
     </View>
@@ -64,82 +63,11 @@ function ProblemCard({ problem }: { problem: AvalancheProblem }) {
 
 export function AvalancheProblems({ problems }: AvalancheProblemsProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Avalanche Problems</Text>
+    <View className="space-y-4">
+      <Text className="text-xl font-semibold text-foreground mb-2">Avalanche Problems</Text>
       {problems.map((problem, index) => (
         <ProblemCard key={index} problem={problem} />
       ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    gap: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    gap: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  icon: {
-    width: 40,
-    height: 40,
-  },
-  problemName: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#1F2937',
-  },
-  details: {
-    gap: 12,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  likelihoodContainer: {
-    gap: 4,
-  },
-  likelihoodBar: {
-    flexDirection: 'row',
-    gap: 4,
-    height: 8,
-  },
-  likelihoodSegment: {
-    flex: 1,
-    borderRadius: 4,
-  },
-  likelihoodText: {
-    fontSize: 14,
-    color: '#374151',
-    marginTop: 4,
-  },
-  sizeContainer: {
-    gap: 4,
-  },
-  sizeText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#374151',
-  },
-});

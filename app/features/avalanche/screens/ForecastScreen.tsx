@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl, Pressable } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { AvalancheAPI } from '../api';
 import { DangerLevel as DangerLevelType, Zone } from '../types';
@@ -16,59 +16,60 @@ export function ForecastScreen() {
   const { data: forecast, isLoading, isError, refetch } = useQuery({
     queryKey: ['avalancheForecast', selectedZone.id],
     queryFn: () => AvalancheAPI.getForecast(selectedZone),
-    staleTime: 1000 * 60 * 60, // Consider data stale after 1 hour
-    gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60 * 24,
   });
 
   const currentDanger = forecast?.danger.find(d => d.valid_day === 'current');
 
   if (isError) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Failed to load forecast</Text>
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-destructive text-base">Failed to load forecast</Text>
       </View>
     );
   }
 
   if (isLoading || !forecast || !currentDanger) {
     return (
-      <View style={styles.centerContainer}>
-        <Text>Loading forecast...</Text>
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-foreground">Loading forecast...</Text>
       </View>
     );
   }
 
   return (
     <ScrollView 
-      style={styles.container}
-      contentContainerStyle={styles.content}
+      className="flex-1 bg-background"
+      contentContainerStyle={{ padding: 16 }}
       refreshControl={
         <RefreshControl refreshing={isLoading} onRefresh={refetch} />
       }
     >
       <Pressable 
-        style={styles.zoneSelector}
+        className="flex-row items-center justify-between p-3 bg-card rounded-lg mb-4 border border-border"
         onPress={() => setShowZoneSelector(!showZoneSelector)}
       >
-        <Text style={styles.zoneSelectorText}>{selectedZone.name}</Text>
-        <ChevronDown size={20} />
+        <Text className="text-base font-medium text-card-foreground">{selectedZone.name}</Text>
+        <ChevronDown size={20} className="text-muted-foreground" />
       </Pressable>
 
       {showZoneSelector && (
-        <View style={styles.zoneList}>
+        <View className="bg-card rounded-lg mb-4 border border-border overflow-hidden">
           {CBAC_ZONES.map((zone) => (
             <Pressable
               key={zone.id}
-              style={styles.zoneItem}
+              className="p-3 border-b border-border"
               onPress={() => {
                 setSelectedZone(zone);
                 setShowZoneSelector(false);
               }}
             >
-              <Text style={[
-                styles.zoneItemText,
-                zone.id === selectedZone.id && styles.selectedZoneText
-              ]}>
+              <Text className={`text-base ${
+                zone.id === selectedZone.id 
+                  ? "text-primary font-medium" 
+                  : "text-card-foreground"
+              }`}>
                 {zone.name}
               </Text>
             </Pressable>
@@ -76,33 +77,33 @@ export function ForecastScreen() {
         </View>
       )}
 
-      <View style={styles.header}>
-        <Text style={styles.title}>{forecast.forecast_zone[0].name}</Text>
-        <Text style={styles.date}>
+      <View className="mb-6">
+        <Text className="text-2xl font-semibold text-foreground">{forecast.forecast_zone[0].name}</Text>
+        <Text className="text-base text-muted-foreground mt-1">
           {new Date(forecast.published_time).toLocaleDateString()}
         </Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Overall Danger</Text>
+      <View className="mb-6">
+        <Text className="text-lg font-semibold text-foreground mb-3">Overall Danger</Text>
         <DangerLevel 
           level={Math.min(5, Math.max(1, Math.max(currentDanger.upper, currentDanger.middle, currentDanger.lower))) as DangerLevelType} 
           size="large" 
         />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Danger by Elevation</Text>
+      <View className="mb-6">
+        <Text className="text-lg font-semibold text-foreground mb-3">Danger by Elevation</Text>
         <ElevationBands dangerRating={currentDanger} />
       </View>
 
-      <View style={styles.section}>
+      <View className="mb-6">
         <AvalancheProblems problems={forecast.forecast_avalanche_problems} />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bottom Line</Text>
-        <Text style={styles.bottomLine}>
+      <View className="mb-6">
+        <Text className="text-lg font-semibold text-foreground mb-3">Bottom Line</Text>
+        <Text className="text-base text-foreground leading-6">
           {forecast.bottom_line
             .replace(/<\/?p>/g, '')
             .replace(/&nbsp;/g, ' ')
@@ -110,108 +111,14 @@ export function ForecastScreen() {
         </Text>
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
+      <View className="mt-6 pt-4 border-t border-border">
+        <Text className="text-sm text-muted-foreground mb-1">
           Forecast by {forecast.author}
         </Text>
-        <Text style={styles.footerText}>
+        <Text className="text-sm text-muted-foreground">
           Expires: {new Date(forecast.expires_time).toLocaleString()}
         </Text>
       </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  content: {
-    padding: 16,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: '#EF4444',
-    fontSize: 16,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  date: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  bottomLine: {
-    fontSize: 16,
-    color: '#374151',
-    lineHeight: 24,
-  },
-  footer: {
-    marginTop: 24,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  zoneSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  zoneSelectorText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-  },
-  zoneList: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    overflow: 'hidden',
-  },
-  zoneItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  zoneItemText: {
-    fontSize: 16,
-    color: '#374151',
-  },
-  selectedZoneText: {
-    color: '#2563EB',
-    fontWeight: '500',
-  },
-});

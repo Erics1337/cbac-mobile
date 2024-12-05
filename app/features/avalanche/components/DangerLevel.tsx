@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import { View, Image } from 'react-native';
 import { DangerLevel as DangerLevelType } from '../types';
 
 interface DangerLevelProps {
@@ -23,21 +23,19 @@ export function DangerLevel({ level, size = 'medium' }: DangerLevelProps) {
   };
 
   const containerSize = sizeMap[size];
+  const sizeClass = {
+    small: 'w-10 h-10',
+    medium: 'w-[60px] h-[60px]',
+    large: 'w-20 h-20',
+  }[size];
 
   return (
-    <View style={[styles.container, { width: containerSize, height: containerSize }]}>
+    <View className={`items-center justify-center ${sizeClass}`}>
       <Image
         source={dangerImages[level]}
-        style={{ width: containerSize, height: containerSize }}
+        className={sizeClass}
         resizeMode="contain"
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

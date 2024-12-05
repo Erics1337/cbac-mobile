@@ -1,18 +1,18 @@
 import "./global.css";
-import {BottomSheetModalProvider} from "@gorhom/bottom-sheet";
-import {type Theme, ThemeProvider} from "@react-navigation/native";
-import {SplashScreen, Stack} from "expo-router";
-import {StatusBar} from "expo-status-bar";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { type Theme, ThemeProvider } from "@react-navigation/native";
+import { SplashScreen, Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import {GestureHandlerRootView} from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import {PortalHost} from "@/components/primitives/portal";
-import {DatabaseProvider} from "@/db/provider";
-import {setAndroidNavigationBar} from "@/lib/android-navigation-bar";
-import {NAV_THEME} from "@/lib/constants";
-import {useColorScheme} from "@/lib/useColorScheme";
-import {getItem, setItem} from "@/lib/storage";
-import {Platform} from "react-native";
+import { PortalHost } from "@/components/primitives/portal";
+import { DatabaseProvider } from "@/db/provider";
+import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
+import { NAV_THEME } from "@/lib/constants";
+import { useColorScheme } from "@/lib/useColorScheme";
+import { getItem, setItem } from "@/lib/storage";
+import { Platform } from "react-native";
 
 const LIGHT_THEME: Theme = {
   dark: false,
@@ -46,7 +46,7 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const {colorScheme, setColorScheme, isDarkColorScheme} = useColorScheme();
+  const { colorScheme, setColorScheme, isDarkColorScheme } = useColorScheme();
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
   React.useEffect(() => {
@@ -60,11 +60,13 @@ export default function RootLayout() {
         setAndroidNavigationBar(colorScheme);
         setItem("theme", colorScheme);
         setIsColorSchemeLoaded(true);
+        await SplashScreen.hideAsync();
         return;
       }
       setColorScheme(theme);
       setAndroidNavigationBar(theme);
       setIsColorSchemeLoaded(true);
+      await SplashScreen.hideAsync();
     })();
   }, [colorScheme, setColorScheme]);
 
@@ -75,11 +77,11 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-        <GestureHandlerRootView style={{flex: 1}}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
           <DatabaseProvider>
             <BottomSheetModalProvider>
               <Stack>
-                <Stack.Screen name="(tabs)" options={{headerShown: false}} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               </Stack>
               <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
               <PortalHost name="AppPortal" />
