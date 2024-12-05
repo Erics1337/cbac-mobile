@@ -5,6 +5,7 @@ import {SplashScreen, Stack} from "expo-router";
 import {StatusBar} from "expo-status-bar";
 import * as React from "react";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {PortalHost} from "@/components/primitives/portal";
 import {DatabaseProvider} from "@/db/provider";
 import {setAndroidNavigationBar} from "@/lib/android-navigation-bar";
@@ -21,6 +22,16 @@ const DARK_THEME: Theme = {
   dark: true,
   colors: NAV_THEME.dark,
 };
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
+      gcTime: 1000 * 60 * 60 * 24, // Keep unused data in cache for 24 hours
+      retry: 2,
+    },
+  },
+});
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -51,49 +62,31 @@ export default function RootLayout() {
         setIsColorSchemeLoaded(true);
         return;
       }
-      const colorTheme = theme === "dark" ? "dark" : "light";
-      setAndroidNavigationBar(colorTheme);
-      if (colorTheme !== colorScheme) {
-        setColorScheme(colorTheme);
-
-        setIsColorSchemeLoaded(true);
-        return;
-      }
+      setColorScheme(theme);
+      setAndroidNavigationBar(theme);
       setIsColorSchemeLoaded(true);
-    })().finally(() => {
-      SplashScreen.hideAsync();
-    });
-  }, []);
+    })();
+  }, [colorScheme, setColorScheme]);
 
   if (!isColorSchemeLoaded) {
     return null;
   }
 
   return (
-    <>
-      <DatabaseProvider>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-          <GestureHandlerRootView style={{flex: 1}}>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <DatabaseProvider>
             <BottomSheetModalProvider>
-              <Stack >
+              <Stack>
                 <Stack.Screen name="(tabs)" options={{headerShown: false}} />
-                <Stack.Screen options={{
-                  headerShadowVisible: false,
-                  headerBackTitleVisible: false,
-                }} name="habits/archive" />
-                <Stack.Screen options={{
-                  headerShadowVisible: false,
-                  headerBackTitleVisible: false,
-                }} name="habits/[id]" />
               </Stack>
+              <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+              <PortalHost name="AppPortal" />
             </BottomSheetModalProvider>
-          </GestureHandlerRootView>
-
-        </ThemeProvider>
-      </DatabaseProvider>
-      <PortalHost />
-    </>
-
+          </DatabaseProvider>
+        </GestureHandlerRootView>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
