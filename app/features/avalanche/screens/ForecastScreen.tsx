@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { AvalancheAPI } from '../api';
@@ -8,12 +8,13 @@ import { AvalancheProblems } from '../components/AvalancheProblems';
 import { DangerLevel } from '../components/DangerLevel';
 import { CBAC_ZONES } from '../types';
 import { ChevronDown } from 'lucide-react-native';
+import { HtmlContent } from '../components/HtmlContent';
 
 export function ForecastScreen() {
   const [selectedZone, setSelectedZone] = useState<Zone>(CBAC_ZONES[0]);
   const [showZoneSelector, setShowZoneSelector] = useState(false);
 
-  const { data: forecast, isLoading, isError, refetch } = useQuery({
+  const { data: forecast, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['avalancheForecast', selectedZone.id],
     queryFn: () => AvalancheAPI.getForecast(selectedZone),
     staleTime: 1000 * 60 * 60,
@@ -26,6 +27,12 @@ export function ForecastScreen() {
     return (
       <View className="flex-1 justify-center items-center">
         <Text className="text-destructive text-base">Failed to load forecast</Text>
+        <Pressable
+          className="mt-4 bg-primary px-4 py-2 rounded-lg"
+          onPress={() => refetch()}
+        >
+          <Text className="text-primary-foreground">Try Again</Text>
+        </Pressable>
       </View>
     );
   }
@@ -39,14 +46,18 @@ export function ForecastScreen() {
   }
 
   return (
-    <ScrollView 
+    <ScrollView
       className="flex-1 bg-background"
       contentContainerStyle={{ padding: 16 }}
       refreshControl={
-        <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+        />
       }
     >
-      <Pressable 
+      {/* Zone Selector */}
+      <Pressable
         className="flex-row items-center justify-between p-3 bg-card rounded-lg mb-4 border border-border"
         onPress={() => setShowZoneSelector(!showZoneSelector)}
       >
@@ -65,11 +76,10 @@ export function ForecastScreen() {
                 setShowZoneSelector(false);
               }}
             >
-              <Text className={`text-base ${
-                zone.id === selectedZone.id 
-                  ? "text-primary font-medium" 
-                  : "text-card-foreground"
-              }`}>
+              <Text className={`text-base ${zone.id === selectedZone.id
+                ? "text-primary font-medium"
+                : "text-card-foreground"
+                }`}>
                 {zone.name}
               </Text>
             </Pressable>
@@ -86,9 +96,9 @@ export function ForecastScreen() {
 
       <View className="mb-6">
         <Text className="text-lg font-semibold text-foreground mb-3">Overall Danger</Text>
-        <DangerLevel 
-          level={Math.min(5, Math.max(1, Math.max(currentDanger.upper, currentDanger.middle, currentDanger.lower))) as DangerLevelType} 
-          size="large" 
+        <DangerLevel
+          level={Math.min(5, Math.max(1, Math.max(currentDanger.upper, currentDanger.middle, currentDanger.lower))) as DangerLevelType}
+          size="large"
         />
       </View>
 
@@ -103,12 +113,9 @@ export function ForecastScreen() {
 
       <View className="mb-6">
         <Text className="text-lg font-semibold text-foreground mb-3">Bottom Line</Text>
-        <Text className="text-base text-foreground leading-6">
-          {forecast.bottom_line
-            .replace(/<\/?p>/g, '')
-            .replace(/&nbsp;/g, ' ')
-            .trim()}
-        </Text>
+        <View className="bg-white dark:bg-card rounded-lg p-4">
+          <HtmlContent html={forecast.bottom_line} />
+        </View>
       </View>
 
       <View className="mt-6 pt-4 border-t border-border">

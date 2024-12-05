@@ -5,11 +5,11 @@ import { AvalancheProblemGuide } from '@/app/features/avalanche/screens/Avalanch
 export default function ProblemGuideScreen() {
   return (
     <>
-      <Stack.Screen 
+      <Stack.Screen
         options={{
           title: 'Avalanche Problems',
           headerLargeTitle: true,
-        }} 
+        }}
       />
       <AvalancheProblemGuide />
     </>
